@@ -3,6 +3,9 @@ name: Build Glass TV APK
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,16 +16,17 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
-      - name: Install Android SDK
-        run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
-      - name: Build APK
+        with:
+          packages: platforms;android-34 build-tools;34.0.0
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build release APK
         working-directory: launcher
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew --no-daemon assembleRelease
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: glass-tv-apk
-          path: launcher/app/build/outputs/apk/release/*.apk
+          path: launcher/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
